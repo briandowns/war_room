@@ -227,7 +227,7 @@ main(int argc, char **argv)
         "to generate reports and visualizations.\n\n"
         "Required:\n"
         "    export CVE_DB_PATH=/path/to/cve.db\n");
-    rattler_set_version(root, "0.1.0");
+    rattler_set_version(root, STR(war_room_version));
 
     rattler_cmd *list = rattler_new_command(
         "list [command]",

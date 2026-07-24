@@ -53,6 +53,18 @@ war_room report images-by-cve -c CVE-2026-9999
 +--------------------------------------------------------+------------------+--------------------------+
 ```
 
+## Docker
+
+```sh
+make image
+```
+
+Run
+
+```sh
+docker run --rm -it -v "${GOPATH}/src/github.com/briandowns/image-scanning/artifacts/cvedb":/data -w /data -e CVE_DB_PATH="/data/cves.db" briandowns/war_room:latest list teams
+```
+
 ## Contributing
 
 Please feel free to open a PR!
