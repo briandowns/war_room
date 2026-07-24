@@ -16,7 +16,7 @@ MACOS_MANPAGE_LOC = /usr/share/man
 LINUX_MANPAGE_LOC = /usr/local/man/man8
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
-	$(CC) $(CFLAGS) main.c db.c fort.c -o $(BINDIR)/$(BINARY) $(LDFLAGS)
+	$(CC) $(CFLAGS) main.c report.c fort.c -o $(BINDIR)/$(BINARY) $(LDFLAGS)
 	
 $(BINDIR):
 	mkdir -p $(BINDIR)

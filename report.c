@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "db.h"
+#include "report.h"
 #include "fort.h"
 
 #define TEAMS_QUERY "WITH RECURSIVE split(team_name, remainder) AS (" \
@@ -180,7 +180,7 @@ to_upper(char *str) {
 }
 
 int
-db_init()
+report_init()
 {
     char *path_value = getenv("CVE_DB_PATH");
 
@@ -202,7 +202,7 @@ db_init()
 }
 
 void
-db_shutdown()
+report_shutdown()
 {
     if (db != NULL) {
         sqlite3_close(db);
@@ -211,7 +211,7 @@ db_shutdown()
 }
 
 void
-list_images_all()
+report_list_images_all()
 {
         sqlite3_stmt *stmt;
         int rc = sqlite3_prepare_v2(db, IMAGES_ALL_QUERY, -1, &stmt, NULL);
@@ -236,7 +236,7 @@ list_images_all()
 }
 
 void
-list_images_by_team(const char *team)
+report_list_images_by_team(const char *team)
 {
         sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, IMAGES_BY_TEAM_QUERY, -1, &stmt, NULL);
@@ -269,7 +269,7 @@ list_images_by_team(const char *team)
 }
 
 void
-list_teams()
+report_list_teams()
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, TEAMS_QUERY, -1, &stmt, NULL);
@@ -294,7 +294,7 @@ list_teams()
 }
 
 void
-top_images_by_vuln_count_report()
+report_top_images_by_vuln_count()
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, TOP_IMAGES_BY_VULN_COUNT_QUERY, -1,
@@ -328,7 +328,7 @@ top_images_by_vuln_count_report()
 }
 
 void
-images_vulns_by_severity_report(const char *severity)
+report_images_vulns_by_severity(const char *severity)
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, IMAGE_VULNS_BY_SEVERITY_QUERY, -1, &stmt,
@@ -366,7 +366,7 @@ images_vulns_by_severity_report(const char *severity)
 }
 
 void
-vulns_by_team_report(const char *team)
+report_vulns_by_team(const char *team)
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, VULNS_BY_TEAM_QUERY, -1, &stmt,
@@ -409,7 +409,7 @@ vulns_by_team_report(const char *team)
 }
 
 void
-vulns_by_all_teams_report()
+report_vulns_by_all_teams()
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, VULNS_BY_ALL_TEAMS_QUERY, -1,
@@ -443,7 +443,7 @@ vulns_by_all_teams_report()
 }
 
 void
-images_by_cve_report(const char *cve)
+report_images_by_cve(const char *cve)
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, IMAGES_BY_CVE_QUERY, -1, &stmt, NULL);
@@ -481,7 +481,7 @@ images_by_cve_report(const char *cve)
 }
 
 void
-release_debt_report(const char *release)
+report_release_debt(const char *release)
 {
     sqlite3_stmt *stmt;
     int rc = 0;
@@ -527,7 +527,7 @@ release_debt_report(const char *release)
 }
 
 void
-release_health_report(const char *release)
+report_release_health(const char *release)
 {
     sqlite3_stmt *stmt;
     int rc = 0;

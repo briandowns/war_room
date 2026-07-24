@@ -29,8 +29,8 @@
 
 #include <rattler.h>
 
-#include "db.h"
 #include "fort.h"
+#include "report.h"
 
 #define STR1(x) #x
 #define STR(x) STR1(x)
@@ -119,12 +119,12 @@ list_cmd(rattler_cmd *cmd, int argc, char **argv)
         const char *team = rattler_flag_string(cmd, "team");
 
         if (team != NULL && team[0] != '\0') {
-            list_images_by_team(team);
+            report_list_images_by_team(team);
         } else {
-            list_images_all();
+            report_list_images_all();
         }
     } else if (strcmp(list_item, "teams") == 0) {
-        list_teams();
+        report_list_teams();
     } else if (strcmp(list_item, "severities") == 0) {
         ft_table_t *table = ft_create_table();
         ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
@@ -167,7 +167,7 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
     const char *report_name = argv[0];
 
     if (strcmp(report_name, "top-images-by-vuln-count") == 0) {
-        top_images_by_vuln_count_report();
+        report_top_images_by_vuln_count();
     } else if (strcmp(report_name, "images-vulns-by-severity") == 0) {
         const char *severity = rattler_flag_string(cmd, "severity");
 
@@ -176,7 +176,7 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
             return;
         }
 
-        images_vulns_by_severity_report(severity);
+        report_images_vulns_by_severity(severity);
     } else if (strcmp(report_name, "vulns-by-team") == 0) {
         const char *team = rattler_flag_string(cmd, "team");
 
@@ -185,9 +185,9 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
             return;
         }
 
-        vulns_by_team_report(team);
+        report_vulns_by_team(team);
     } else if (strcmp(report_name, "vulns-by-all-teams") == 0) {
-        vulns_by_all_teams_report();
+        report_vulns_by_all_teams();
     } else if (strcmp(report_name, "images-by-cve") == 0) {
         const char *cve = rattler_flag_string(cmd, "cve");
 
@@ -196,18 +196,18 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
             return;
         }
 
-        images_by_cve_report(cve);
+        report_images_by_cve(cve);
     } else if (strcmp(report_name, "release-debt") == 0) {
         const char *release = rattler_flag_string(cmd, "release");
         if (release == NULL || release[0] == '\0') {
             printf("Note: lower debt values are better\n\n");
         }
 
-        release_debt_report(release);
+        report_release_debt(release);
     } else if (strcmp(report_name, "release-health") == 0) {
         const char *release = rattler_flag_string(cmd, "release");
         
-        release_health_report(release);
+        report_release_health(release);
 
         if (release == NULL || release[0] == '\0') {
             printf("Note: higher health values are better\n\n");
@@ -256,15 +256,15 @@ main(int argc, char **argv)
     rattler_flags_string(report, "team", 't', "", "team name");
     rattler_add_command(root, report);
 
-    if (db_init() != 0) {
-        fprintf(stderr, "error: failed to initialize database\n");
+    if (report_init() != 0) {
+        fprintf(stderr, "error: failed to initialize report engine\n");
         return 1;
     }
 
     rattler_execute(root, argc, argv);
     rattler_free(root);
 
-    db_shutdown();
+    report_shutdown();
 
     return 0;
 }

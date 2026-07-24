@@ -1,0 +1,13 @@
+./*.c
+./*.h
+*.o
+*.so
+*.dynlib
+
+.vscode/*
+
+war_room.core
+
+bin
+test/test
+.vscode
