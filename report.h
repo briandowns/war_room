@@ -64,10 +64,10 @@ void
 report_release_health(const char *release);
 
 void
-report_worst_packages();
+report_worst_packages(int limit);
 
 void
-report_packages_with_upgrades(const char *package_name);
+report_packages_with_upgrades(const char *package_name, int limit);
 
 void
 report_shutdown();

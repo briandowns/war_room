@@ -9,7 +9,7 @@ CFLAGS  = -std=c2x -Wall -Wextra -fpic \
           -Dbin_name=$(BINARY) \
           -D$(BINARY)_version=$(VERSION) \
 		  -Dgit_sha=$(shell git rev-parse HEAD)
-LDFLAGS = -lrattler -lsqlite3 -lnotcurses -lnotcurses-core -lm -ltinfo -lgpm
+LDFLAGS = -lrattler -lsqlite3
 PREFIX = /usr/local
 
 MACOS_MANPAGE_LOC = /usr/share/man

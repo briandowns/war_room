@@ -215,11 +215,14 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
             printf("Note: higher health values are better\n\n");
         }
     } else if (strcmp(report_name, "worst-packages") == 0) {
-        report_worst_packages();
+        int limit = rattler_flag_int(cmd, "limit");
+
+        report_worst_packages(limit);
     } else if (strcmp(report_name, "packages-with-upgrades") == 0) {
         const char *package = rattler_flag_string(cmd, "package");
+        int limit = rattler_flag_int(cmd, "limit");
 
-        report_packages_with_upgrades(package);
+        report_packages_with_upgrades(package, limit);
     }
 
     return;
@@ -238,7 +241,7 @@ main(int argc, char **argv)
     rattler_set_version(root, STR(war_room_version));
 
     rattler_cmd *list = rattler_new_command(
-        "list [command]",
+        "list [item]",
         "List available resources",
         "list shows available resources:\n"
         "    images: list all images\n"
@@ -251,7 +254,7 @@ main(int argc, char **argv)
     rattler_add_command(root, list);
 
     rattler_cmd *report = rattler_new_command(
-        "report [command]",
+        "report [name]",
         "Run pre-built reports",
         "report runs pre-built reports.\n"
         "Some reports require additional arguments, such as severity level or\n"
@@ -260,6 +263,7 @@ main(int argc, char **argv)
     rattler_flags_string(report, "severity", 's', "",
         "severity (critical, high, medium, low)");
     rattler_flags_string(report, "cve", 'c', "", "CVE identifier");
+    rattler_flags_int(report, "limit", 'l', 0, "Limit results");
     rattler_flags_string(report, "package", 'p', "", "Package name");
     rattler_flags_string(report, "release", 'r', "", "Release tag");
     rattler_flags_string(report, "team", 't', "", "team name");

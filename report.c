@@ -611,7 +611,7 @@ report_release_health(const char *release)
 }
 
 void
-report_worst_packages()
+report_worst_packages(int limit)
 {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, WORST_PACKAGES_QUERY, -1, &stmt, NULL);
@@ -625,11 +625,13 @@ report_worst_packages()
         FT_ROW_HEADER);
     ft_write_ln(table, "Package", "Occurances");
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
+    int row_count = 0;
+    while (sqlite3_step(stmt) == SQLITE_ROW && (limit == 0 || row_count < limit)) {
         const unsigned char *package_name = sqlite3_column_text(stmt, 0);
         const unsigned char *occurances = sqlite3_column_text(stmt, 1);
 
         ft_write_ln(table, (const char *)package_name, (const char *)occurances);
+        row_count++;
     }
     sqlite3_finalize(stmt);
 
@@ -638,10 +640,10 @@ report_worst_packages()
 }
 
 void
-report_packages_with_upgrades(const char *package_name)
+report_packages_with_upgrades(const char *package_name, int limit)
 {
     sqlite3_stmt *stmt;
-int rc = 0;
+    int rc = 0;
     
     if (package_name != NULL && package_name[0] != '\0') {
         rc = sqlite3_prepare_v2(db, PACKAGE_WITH_UPGRADE_QUERY, -1, &stmt, NULL);
@@ -671,7 +673,8 @@ int rc = 0;
         FT_ROW_HEADER);
     ft_write_ln(table, "Package", "Version", "Patched Version", "Affected");
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
+    int row_count = 0;
+    while (sqlite3_step(stmt) == SQLITE_ROW && (limit == 0 || row_count < limit)) {
         const unsigned char *package_name = sqlite3_column_text(stmt, 0);
         const unsigned char *version = sqlite3_column_text(stmt, 1);
         const unsigned char *patched_version = sqlite3_column_text(stmt, 2);
@@ -679,6 +682,7 @@ int rc = 0;
 
         ft_write_ln(table, (const char *)package_name, (const char *)version,
             (const char *)patched_version, (const char *)affected);
+        row_count++;
     }
     sqlite3_finalize(stmt);
 
