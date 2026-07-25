@@ -64,6 +64,12 @@ void
 report_release_health(const char *release);
 
 void
+report_worst_packages();
+
+void
+report_packages_with_upgrades(const char *package_name);
+
+void
 report_shutdown();
 
 #endif /** end __REPORT_H */

@@ -6,8 +6,10 @@
 
 .vscode/*
 
+war_room
 war_room.core
 
-bin
+bin/war_room
+
 test/test
 .vscode

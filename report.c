@@ -124,24 +124,24 @@
         "(medium * 3) + " \
         "low AS debt " \
     "FROM release_stats " \
-"), " \
-"max_debt AS ( " \
-    "SELECT MAX(debt) AS value " \
-    "FROM debt " \
-") " \
-"SELECT " \
-    "d.release, " \
-    "CAST(d.debt AS TEXT), " \
-    "ROUND( " \
-        "CASE " \
-            "WHEN m.value = 0 THEN 100 " \
-            "ELSE (1.0 - (CAST(d.debt AS REAL) / m.value)) * 100 " \
-        "END, " \
-        "1 " \
-    ") AS health " \
-"FROM debt d " \
-"CROSS JOIN max_debt m " \
-"ORDER BY health DESC;"
+    "), " \
+    "max_debt AS ( " \
+        "SELECT MAX(debt) AS value " \
+        "FROM debt " \
+    ") " \
+    "SELECT " \
+        "d.release, " \
+        "CAST(d.debt AS TEXT), " \
+        "ROUND( " \
+            "CASE " \
+                "WHEN m.value = 0 THEN 100 " \
+                "ELSE (1.0 - (CAST(d.debt AS REAL) / m.value)) * 100 " \
+            "END, " \
+            "1 " \
+        ") AS health " \
+    "FROM debt d " \
+    "CROSS JOIN max_debt m " \
+    "ORDER BY health DESC;"
 #define RELEASE_HEALTH_BY_RELEASE_QUERY "WITH debt AS ( " \
     "SELECT " \
         "release, " \
@@ -150,25 +150,62 @@
         "(medium * 3) + " \
         "low AS debt " \
     "FROM release_stats " \
-"), " \
-"max_debt AS ( " \
-    "SELECT MAX(debt) AS value " \
-    "FROM debt " \
-") " \
-"SELECT " \
-    "d.release, " \
-    "CAST(d.debt AS TEXT), " \
-    "ROUND( " \
-        "CASE " \
-            "WHEN m.value = 0 THEN 100 " \
-            "ELSE (1.0 - (CAST(d.debt AS REAL) / m.value)) * 100 " \
-        "END, " \
-        "1 " \
-    ") AS health " \
-"FROM debt d " \
-"CROSS JOIN max_debt m " \
-"WHERE d.release = :release " \
-"ORDER BY health DESC;"
+    "), " \
+    "max_debt AS ( " \
+        "SELECT MAX(debt) AS value " \
+        "FROM debt " \
+    ") " \
+    "SELECT " \
+        "d.release, " \
+        "CAST(d.debt AS TEXT), " \
+        "ROUND( " \
+            "CASE " \
+                "WHEN m.value = 0 THEN 100 " \
+                "ELSE (1.0 - (CAST(d.debt AS REAL) / m.value)) * 100 " \
+            "END, " \
+            "1 " \
+        ") AS health " \
+    "FROM debt d " \
+    "CROSS JOIN max_debt m " \
+    "WHERE d.release = :release " \
+    "ORDER BY health DESC;"
+#define WORST_PACKAGES_QUERY "SELECT " \
+    "package_name, " \
+    "COUNT(*) AS occurrences, " \
+    "COUNT(DISTINCT vulnerability_id) AS unique_cves " \
+    "FROM findings " \
+    "WHERE status != 'fixed' " \
+    "GROUP BY package_name " \
+    "ORDER BY occurrences DESC;"
+#define PACKAGES_WITH_UPGRADE_QUERY "SELECT " \
+    "package_name, " \
+    "package_version, " \
+    "patched_version, " \
+    "COUNT(*) AS affected " \
+    "FROM findings " \
+    "WHERE " \
+    "patched_version != '' " \
+    "AND status != 'fixed' " \
+    "GROUP BY " \
+    "package_name, " \
+    "package_version, " \
+    "patched_version " \
+    "ORDER BY affected DESC;"
+#define PACKAGE_WITH_UPGRADE_QUERY "SELECT " \
+    "package_name, " \
+    "package_version, " \
+    "patched_version, " \
+    "COUNT(*) AS affected " \
+    "FROM findings " \
+    "WHERE " \
+    "package_name = :package_name " \
+    "AND patched_version != '' " \
+    "AND status != 'fixed' " \
+    "GROUP BY " \
+    "package_name, " \
+    "package_version, " \
+    "patched_version " \
+    "ORDER BY affected DESC;"
 
 static sqlite3 *db = NULL;
 
@@ -213,32 +250,32 @@ report_shutdown()
 void
 report_list_images_all()
 {
-        sqlite3_stmt *stmt;
-        int rc = sqlite3_prepare_v2(db, IMAGES_ALL_QUERY, -1, &stmt, NULL);
-        if (rc != SQLITE_OK) {
-            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-            return;
-        }
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, IMAGES_ALL_QUERY, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        return;
+    }
 
-        ft_table_t *table = ft_create_table();
-        ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
-            FT_ROW_HEADER);
-        ft_write_ln(table, "Name");
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
+        FT_ROW_HEADER);
+    ft_write_ln(table, "Name");
 
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            const unsigned char *name = sqlite3_column_text(stmt, 0);
-            ft_write_ln(table, (const char *)name);
-        }
-        sqlite3_finalize(stmt);
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char *name = sqlite3_column_text(stmt, 0);
+        ft_write_ln(table, (const char *)name);
+    }
+    sqlite3_finalize(stmt);
 
-        printf("%s\n", ft_to_string(table));
-        ft_destroy_table(table);
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
 }
 
 void
 report_list_images_by_team(const char *team)
 {
-        sqlite3_stmt *stmt;
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, IMAGES_BY_TEAM_QUERY, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
@@ -566,6 +603,82 @@ report_release_health(const char *release)
         const unsigned char *health = sqlite3_column_text(stmt, 2);
 
         ft_write_ln(table, (const char *)release, (const char *)debt, (const char *)health);
+    }
+    sqlite3_finalize(stmt);
+
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
+}
+
+void
+report_worst_packages()
+{
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, WORST_PACKAGES_QUERY, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
+        FT_ROW_HEADER);
+    ft_write_ln(table, "Package", "Occurances");
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char *package_name = sqlite3_column_text(stmt, 0);
+        const unsigned char *occurances = sqlite3_column_text(stmt, 1);
+
+        ft_write_ln(table, (const char *)package_name, (const char *)occurances);
+    }
+    sqlite3_finalize(stmt);
+
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
+}
+
+void
+report_packages_with_upgrades(const char *package_name)
+{
+    sqlite3_stmt *stmt;
+int rc = 0;
+    
+    if (package_name != NULL && package_name[0] != '\0') {
+        rc = sqlite3_prepare_v2(db, PACKAGE_WITH_UPGRADE_QUERY, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+            return;
+        }
+
+        int param_index = sqlite3_bind_parameter_index(stmt, ":package_name");
+        if (param_index == 0) {
+            fprintf(stderr, "parameter ':package_name' not found in statement\n");
+            sqlite3_finalize(stmt);
+            return;
+        } 
+
+        sqlite3_bind_text(stmt, param_index, package_name, -1, SQLITE_STATIC);
+    } else {
+        rc = sqlite3_prepare_v2(db, PACKAGES_WITH_UPGRADE_QUERY, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+            return;
+        }
+    }
+
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
+        FT_ROW_HEADER);
+    ft_write_ln(table, "Package", "Version", "Patched Version", "Affected");
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char *package_name = sqlite3_column_text(stmt, 0);
+        const unsigned char *version = sqlite3_column_text(stmt, 1);
+        const unsigned char *patched_version = sqlite3_column_text(stmt, 2);
+        const unsigned char *affected = sqlite3_column_text(stmt, 3);
+
+        ft_write_ln(table, (const char *)package_name, (const char *)version,
+            (const char *)patched_version, (const char *)affected);
     }
     sqlite3_finalize(stmt);
 

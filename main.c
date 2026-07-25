@@ -51,6 +51,8 @@ static const char *reports[] = {
     "images-by-cve",
     "release-debt",
     "release-health",
+    "worst-packages",
+    "packages-with-upgrades",
     NULL
 };
 
@@ -212,6 +214,12 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
         if (release == NULL || release[0] == '\0') {
             printf("Note: higher health values are better\n\n");
         }
+    } else if (strcmp(report_name, "worst-packages") == 0) {
+        report_worst_packages();
+    } else if (strcmp(report_name, "packages-with-upgrades") == 0) {
+        const char *package = rattler_flag_string(cmd, "package");
+
+        report_packages_with_upgrades(package);
     }
 
     return;
@@ -252,7 +260,8 @@ main(int argc, char **argv)
     rattler_flags_string(report, "severity", 's', "",
         "severity (critical, high, medium, low)");
     rattler_flags_string(report, "cve", 'c', "", "CVE identifier");
-    rattler_flags_string(report, "release", 'r', "", "release tag");
+    rattler_flags_string(report, "package", 'p', "", "Package name");
+    rattler_flags_string(report, "release", 'r', "", "Release tag");
     rattler_flags_string(report, "team", 't', "", "team name");
     rattler_add_command(root, report);
 
