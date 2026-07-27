@@ -53,6 +53,7 @@ static const char *reports[] = {
     "release-health",
     "worst-packages",
     "packages-with-upgrades",
+    "vex-effectiveness",
     NULL
 };
 
@@ -223,6 +224,10 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
         int limit = rattler_flag_int(cmd, "limit");
 
         report_packages_with_upgrades(package, limit);
+    } else if (strcmp(report_name, "vex-effectiveness") == 0) {
+        const char *package = rattler_flag_string(cmd, "package");
+
+        report_vex_effectiveness(package);
     }
 
     return;

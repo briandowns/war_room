@@ -206,7 +206,29 @@
     "package_version, " \
     "patched_version " \
     "ORDER BY affected DESC;"
-
+#define VEX_EFFECTIVENESS_QUERY "SELECT " \
+    "package_name, " \
+    "COUNT(*) AS total, " \
+    "SUM(CASE WHEN status = 'not_affected' THEN 1 ELSE 0 END) AS vexed, " \
+    "ROUND( " \
+        "((COUNT(*) - SUM(CASE WHEN status = 'not_affected' THEN 1 ELSE 0 END)) * 100.0) / COUNT(*), " \
+        "2 " \
+    ") AS effectiveness " \
+    "FROM findings " \
+    "GROUP BY package_name " \
+    "ORDER BY total DESC;"
+#define VEX_EFFECTIVENESS_BY_PACKAGE_QUERY "SELECT " \
+    "package_name, " \
+    "COUNT(*) AS total, " \
+    "SUM(CASE WHEN status = 'not_affected' THEN 1 ELSE 0 END) AS vexed, " \
+    "ROUND( " \
+        "((COUNT(*) - SUM(CASE WHEN status = 'not_affected' THEN 1 ELSE 0 END)) * 100.0) / COUNT(*), " \
+        "2 " \
+    ") AS effectiveness " \
+    "FROM findings " \
+    "WHERE package_name = :package_name " \
+    "GROUP BY package_name " \
+    "ORDER BY total DESC;"
 static sqlite3 *db = NULL;
 
 static void
@@ -640,7 +662,7 @@ report_worst_packages(int limit)
 }
 
 void
-report_packages_with_upgrades(const char *package_name, int limit)
+report_packages_with_upgrades(const char *package_name, const int limit)
 {
     sqlite3_stmt *stmt;
     int rc = 0;
@@ -682,6 +704,57 @@ report_packages_with_upgrades(const char *package_name, int limit)
 
         ft_write_ln(table, (const char *)package_name, (const char *)version,
             (const char *)patched_version, (const char *)affected);
+        row_count++;
+    }
+    sqlite3_finalize(stmt);
+
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
+}
+
+void
+report_vex_effectiveness(const char *package_name)
+{
+    sqlite3_stmt *stmt;
+    int rc = 0;
+    
+    if (package_name != NULL && package_name[0] != '\0') {
+        rc = sqlite3_prepare_v2(db, VEX_EFFECTIVENESS_BY_PACKAGE_QUERY, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+            return;
+        }
+
+        int param_index = sqlite3_bind_parameter_index(stmt, ":package_name");
+        if (param_index == 0) {
+            fprintf(stderr, "parameter ':package_name' not found in statement\n");
+            sqlite3_finalize(stmt);
+            return;
+        } 
+
+        sqlite3_bind_text(stmt, param_index, package_name, -1, SQLITE_STATIC);
+    } else {
+        rc = sqlite3_prepare_v2(db, VEX_EFFECTIVENESS_QUERY, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+            return;
+        }
+    }
+
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
+        FT_ROW_HEADER);
+    ft_write_ln(table, "Package", "Total", "Vexed", "Effectiveness");
+
+    int row_count = 0;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char *package_name = sqlite3_column_text(stmt, 0);
+        const unsigned char *total = sqlite3_column_text(stmt, 1);
+        const unsigned char *vexed = sqlite3_column_text(stmt, 2);
+        const unsigned char *effectiveness = sqlite3_column_text(stmt, 3);
+
+        ft_write_ln(table, (const char *)package_name, (const char *)total,
+            (const char *)vexed, (const char *)effectiveness);
         row_count++;
     }
     sqlite3_finalize(stmt);

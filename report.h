@@ -67,7 +67,10 @@ void
 report_worst_packages(int limit);
 
 void
-report_packages_with_upgrades(const char *package_name, int limit);
+report_packages_with_upgrades(const char *package_name, const int limit);
+
+void
+report_vex_effectiveness(const char *package_name);
 
 void
 report_shutdown();
