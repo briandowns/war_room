@@ -35,6 +35,9 @@ war_room list reports
 | images-by-cve            |
 | release-debt             |
 | release-health           |
+| worst-packages           |
+| packages-with-upgrades   |
+| vex-effectiveness        |
 +--------------------------+
 ```
 
