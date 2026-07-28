@@ -1,0 +1,285 @@
+.Dd July 28, 2026
+.Dt WAR_ROOM 1
+.Os
+.Sh NAME
+.Nm war-room
+.Nd generate reports from Rancher image-scanning database
+.Sh SYNOPSIS
+.Nm
+.Ar command
+.Op Ar arguments
+.Op Fl options
+.Sh DESCRIPTION
+.Nm
+is a command line utility for generating reports and visualizations from the
+Rancher Image-Scanning vulnerability database.
+
+The utility provides a collection of pre-built reports for examining container
+images, vulnerabilities, packages, releases, and teams.
+
+The location of the SQLite database is specified using the
+.Ev CVE_DB_PATH
+environment variable.
+
+.Pp
+Example:
+
+.Bd -literal -offset indent
+export CVE_DB_PATH=/path/to/cves.db
+.Ed
+
+.Sh COMMANDS
+.Bl -tag -width Ds
+
+.It Cm list
+Display information about available resources.
+
+Supported list targets are:
+
+.Bl -bullet -compact
+.It
+images
+.It
+teams
+.It
+reports
+.It
+severities
+.El
+
+.It Cm report
+Execute one of the built-in reports.
+
+Available reports include:
+
+.Bl -bullet
+.It
+top-images-by-vuln-count
+.It
+images-vulns-by-severity
+.It
+vulns-by-team
+.It
+vulns-by-all-teams
+.It
+images-by-cve
+.It
+release-debt
+.It
+release-health
+.It
+worst-packages
+.It
+packages-with-upgrades
+.It
+vex-effectiveness
+.El
+
+.El
+
+.Sh OPTIONS
+
+The following options are accepted by one or more reports.
+
+.Bl -tag -width "--severity"
+
+.It Fl t , Fl -team Ar team
+Specify a Rancher team.
+
+.It Fl s , Fl -severity Ar severity
+Specify a vulnerability severity.
+
+Valid values are:
+
+.Bl -bullet -compact
+.It
+critical
+.It
+high
+.It
+medium
+.It
+low
+.El
+
+.It Fl c , Fl -cve Ar identifier
+Specify a CVE identifier.
+
+.It Fl r , Fl -release Ar release
+Restrict a report to a specific release.
+
+.It Fl p , Fl -package Ar package
+Restrict a report to a package.
+
+.It Fl l , Fl -limit Ar number
+Limit the number of rows returned by a report.
+
+.El
+
+.Sh REPORTS
+
+.Bl -tag -width "packages-with-upgrades"
+
+.It Cm top-images-by-vuln-count
+Displays the images with the highest total vulnerability count.
+
+.It Cm images-vulns-by-severity
+Displays images filtered by vulnerability severity.
+
+Requires
+.Fl -severity .
+
+.It Cm vulns-by-team
+Displays vulnerability totals for a specific team.
+
+Requires
+.Fl -team .
+
+.It Cm vulns-by-all-teams
+Displays vulnerability totals grouped by all teams.
+
+.It Cm images-by-cve
+Lists images affected by a specific CVE.
+
+Requires
+.Fl -cve .
+
+.It Cm release-debt
+Displays release vulnerability debt.
+
+If no release is specified, results for all releases are displayed.
+
+Lower debt values indicate healthier releases.
+
+.It Cm release-health
+Displays a release health score.
+
+If no release is specified, all releases are included.
+
+Higher health values indicate healthier releases.
+
+.It Cm worst-packages
+Displays packages contributing the greatest vulnerability count.
+
+The number of rows may be limited with
+.Fl -limit .
+
+.It Cm packages-with-upgrades
+Displays vulnerable packages that have newer versions available.
+
+May be filtered by package name and limited using
+.Fl -package
+and
+.Fl -limit .
+
+.It Cm vex-effectiveness
+Displays VEX effectiveness metrics.
+
+May be filtered by package name.
+
+.El
+
+.Sh ENVIRONMENT
+
+.Bl -tag -width CVE_DB_PATH
+
+.It Ev CVE_DB_PATH
+Absolute path to the SQLite vulnerability database.
+
+This variable must be set before executing
+.Nm .
+
+.El
+
+.Sh EXIT STATUS
+
+.Ex -std
+
+.Sh EXAMPLES
+
+List available reports:
+
+.Bd -literal -offset indent
+war-room list reports
+.Ed
+
+List teams:
+
+.Bd -literal -offset indent
+war-room list teams
+.Ed
+
+Display images with critical vulnerabilities:
+
+.Bd -literal -offset indent
+war-room report images-vulns-by-severity \
+    --severity critical
+.Ed
+
+Generate a report for a specific team:
+
+.Bd -literal -offset indent
+war-room report vulns-by-team \
+    --team observability
+.Ed
+
+Show all images affected by a CVE:
+
+.Bd -literal -offset indent
+war-room report images-by-cve \
+    --cve CVE-2026-12345
+.Ed
+
+Show the twenty worst packages:
+
+.Bd -literal -offset indent
+war-room report worst-packages \
+    --limit 20
+.Ed
+
+Show package upgrades:
+
+.Bd -literal -offset indent
+war-room report packages-with-upgrades \
+    --package openssl
+.Ed
+
+.Sh DIAGNOSTICS
+
+.Nm
+prints descriptive error messages to standard error when:
+
+.Bl -bullet
+.It
+a required subcommand is omitted
+.It
+an invalid report name is supplied
+.It
+an invalid severity is specified
+.It
+a required option is missing
+.It
+the report engine cannot be initialized
+.El
+
+.Sh IMPLEMENTATION NOTES
+
+.Nm
+is implemented as a command dispatcher built on
+.Xr librattler 3
+and presents report output as formatted terminal tables using
+.Xr libfort 3 .
+
+The report generation logic is implemented by the internal reporting engine.
+
+.Sh SEE ALSO
+
+.Xr sqlite3 1
+
+.Sh AUTHORS
+
+.An Brian J. Downs
+
+.Sh LICENSE
+
+BSD 2-Clause License.

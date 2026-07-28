@@ -13,7 +13,7 @@ LDFLAGS = -lrattler -lsqlite3
 PREFIX = /usr/local
 
 MACOS_MANPAGE_LOC = /usr/share/man
-LINUX_MANPAGE_LOC = /usr/local/man/man8
+LINUX_MANPAGE_LOC = /usr/local/man/man1
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 	$(CC) $(CFLAGS) main.c report.c fort.c -o $(BINDIR)/$(BINARY) $(LDFLAGS)
@@ -24,10 +24,20 @@ $(BINDIR):
 .PHONY: install
 install: $(BINDIR)/$(BINARY)
 	install $(BINDIR)/$(BINARY) $(PREFIX)/$(BINDIR)/$(BINARY)
+ifeq ($(UNAME_S),Darwin)
+	cp $(MACOS_MANPAGE_LOC)/$(BINARY).1 $(BINARY).1
+else
+	cp $(LINUX_MANPAGE_LOC)/$(BINARY).1 $(BINARY).1
+endif
 
 .PHONY: uninstall
 uninstall: 
 	rm -f $(PREFIX)/$(BINDIR)/$(BINARY)*
+ifeq ($(UNAME_S),Darwin)
+	rm -f $(MACOS_MANPAGE_LOC)/$(BINARY).1
+else
+	rm -f $(LINUX_MANPAGE_LOC)/$(BINARY).1
+endif
 
 #.PHONY: test
 #test:
