@@ -28,7 +28,6 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "report.h"
 #include "fort.h"
@@ -170,6 +169,9 @@
     "CROSS JOIN max_debt m " \
     "WHERE d.release = :release " \
     "ORDER BY health DESC;"
+#define REL_STATS_BY_REL_QUERY "SELECT " \
+    "release, critical, high, medium, low, vex, total " \
+    "FROM release_stats WHERE release LIKE '%' :release '%';"
 #define WORST_PACKAGES_QUERY "SELECT " \
     "package_name, " \
     "COUNT(*) AS occurrences, " \
@@ -230,6 +232,7 @@
     "WHERE package_name = :package_name " \
     "GROUP BY package_name " \
     "ORDER BY total DESC;"
+
 static sqlite3 *db = NULL;
 
 static void
@@ -626,6 +629,59 @@ report_release_health(const char *release)
         const unsigned char *health = sqlite3_column_text(stmt, 2);
 
         ft_write_ln(table, (const char *)release, (const char *)debt, (const char *)health);
+    }
+    sqlite3_finalize(stmt);
+
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
+}
+
+void
+report_release_stats_by_release(const char *release)
+{
+    sqlite3_stmt *stmt;
+    int rc = 0;
+
+        if (release != NULL && release[0] != '\0') {
+        rc = sqlite3_prepare_v2(db, RELEASE_HEALTH_BY_RELEASE_QUERY, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+            return;
+        }
+
+        int param_index = sqlite3_bind_parameter_index(stmt, ":release");
+        if (param_index == 0) {
+            fprintf(stderr, "parameter ':release' not found in statement\n");
+            sqlite3_finalize(stmt);
+            return;
+        } 
+
+        sqlite3_bind_text(stmt, param_index, release, -1, SQLITE_STATIC);
+        } else {
+            rc = sqlite3_prepare_v2(db, RELEASE_HEALTH_QUERY, -1, &stmt, NULL);
+            if (rc != SQLITE_OK) {
+                fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+                return;
+            }
+        }
+
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
+        FT_ROW_HEADER);
+    ft_write_ln(table, "Release", "Critical", "High", "Medium", "Low", "Vex", "Total");
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char *release = sqlite3_column_text(stmt, 0);
+        const unsigned char *critical = sqlite3_column_text(stmt, 1);
+        const unsigned char *high = sqlite3_column_text(stmt, 2);
+        const unsigned char *medium = sqlite3_column_text(stmt, 3);
+        const unsigned char *low = sqlite3_column_text(stmt, 4);
+        const unsigned char *vex = sqlite3_column_text(stmt, 5);
+        const unsigned char *total = sqlite3_column_text(stmt, 6);
+
+        ft_write_ln(table, (const char *)release, (const char *)critical,
+            (const char *)high, (const char *)medium, (const char *)low,
+            (const char *)vex, (const char *)total);
     }
     sqlite3_finalize(stmt);
 

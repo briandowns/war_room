@@ -48,6 +48,14 @@ static const char *list_items[] = {
     NULL
 };
 
+static const char *severities[] = {
+    "critical",
+    "high",
+    "medium",
+    "low",
+    NULL
+};
+
 struct report reports[] = {
     {
         .name = "top-images-by-vuln-count",
@@ -78,6 +86,10 @@ struct report reports[] = {
         .description = "Release health report"
     },
     {
+        .name = "release-stats-by-release",
+        .description = "Release stats by release report"
+    },
+    {
         .name = "worst-packages",
         .description = "Worst packages report"
     },
@@ -90,14 +102,6 @@ struct report reports[] = {
         .description = "VEX effectiveness report"
     },
     {NULL, NULL}
-};
-
-static const char *severities[] = {
-    "critical",
-    "high",
-    "medium",
-    "low",
-    NULL
 };
 
 static bool
@@ -250,6 +254,15 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
         if (release == NULL || release[0] == '\0') {
             printf("Note: higher health values are better\n\n");
         }
+    } else if (strcmp(report_name, "release-stats-by-release") == 0) {
+        const char *release = rattler_flag_string(cmd, "release");
+
+        if (release == NULL || release[0] == '\0') {
+            fprintf(stderr, "error: missing required flag -r or --release\n");
+            return;
+        }
+
+        report_release_stats_by_release(release);
     } else if (strcmp(report_name, "worst-packages") == 0) {
         int limit = rattler_flag_int(cmd, "limit");
 

@@ -64,6 +64,9 @@ void
 report_release_health(const char *release);
 
 void
+report_release_stats_by_release(const char *release);
+
+void
 report_worst_packages(int limit);
 
 void

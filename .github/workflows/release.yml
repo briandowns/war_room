@@ -1,0 +1,55 @@
+name: Multi-OS C Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: war_room-linux
+          - os: macos-latest
+            artifact_name: war_room-macos
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+      - name: Compile C Code
+        run: |
+          make BINARY=${{ matrix.artifact_name }}
+        shell: bash
+      - name: Upload Temporary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
+  publish:
+    name: Create Release and Publish Assets
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts_download
+      - name: Organize Release Files
+        run: |
+          mkdir ./release_files
+          find ./artifacts_download -type f -exec cp {} ./release_files/ \;
+          ls -R ./release_files
+      - name: Upload Binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release_files/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
