@@ -35,6 +35,11 @@
 #define STR1(x) #x
 #define STR(x) STR1(x)
 
+struct report {
+    char *name;
+    char *description;
+};
+
 static const char *list_items[] = {
     "images",
     "teams",
@@ -43,19 +48,63 @@ static const char *list_items[] = {
     NULL
 };
 
-static const char *reports[] = {
-    "top-images-by-vuln-count",
-    "images-vulns-by-severity",
-    "vulns-by-team",
-    "vulns-by-all-teams",
-    "images-by-cve",
-    "release-debt",
-    "release-health",
-    "worst-packages",
-    "packages-with-upgrades",
-    "vex-effectiveness",
-    NULL
+struct report reports[] = {
+    {
+        .name = "top-images-by-vuln-count",
+        .description = "Top images by vulnerability count"
+    },
+    {
+        .name = "images-vulns-by-severity",
+        .description = "Images and their vulnerabilities by severity"
+    },
+    {
+        .name = "vulns-by-team",
+        .description = "Vulnerabilities by team"
+    },
+    {
+        .name = "vulns-by-all-teams",
+        .description = "Vulnerabilities by all teams"
+    },
+    {
+        .name = "images-by-cve",
+        .description = "Images affected by a specific CVE"
+    },
+    {
+        .name = "release-debt",
+        .description = "Release debt report"
+    },
+    {
+        .name = "release-health",
+        .description = "Release health report"
+    },
+    {
+        .name = "worst-packages",
+        .description = "Worst packages report"
+    },
+    {
+        .name = "packages-with-upgrades",
+        .description = "Packages with upgrades report"
+    },
+    {
+        .name = "vex-effectiveness",
+        .description = "VEX effectiveness report"
+    },
+    {NULL, NULL}
 };
+
+// static const char *reports[] = {
+//     "top-images-by-vuln-count",
+//     "images-vulns-by-severity",
+//     "vulns-by-team",
+//     "vulns-by-all-teams",
+//     "images-by-cve",
+//     "release-debt",
+//     "release-health",
+//     "worst-packages",
+//     "packages-with-upgrades",
+//     "vex-effectiveness",
+//     NULL
+// };
 
 static const char *severities[] = {
     "critical",
@@ -80,8 +129,8 @@ valid_list_item(const char *item)
 static bool
 valid_report_item(const char *item)
 {
-    for (const char **p = reports; *p != NULL; p++) {
-        if (strcmp(*p, item) == 0) {
+    for (struct report *p = reports; p->name != NULL; p++) {
+        if (strcmp(p->name, item) == 0) {
             return true;
         }
     }
@@ -141,10 +190,10 @@ list_cmd(rattler_cmd *cmd, int argc, char **argv)
     } else if (strcmp(list_item, "reports") == 0) {
         ft_table_t *table = ft_create_table();
         ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
-        ft_write_ln(table, "Name");
+        ft_write_ln(table, "Name", "Description");
 
-        for (const char **p = reports; *p != NULL; p++) {
-            ft_write_ln(table, *p);
+        for (struct report *p = reports; p->name != NULL; p++) {
+            ft_write_ln(table, p->name, p->description);
         }
 
         printf("%s\n", ft_to_string(table));

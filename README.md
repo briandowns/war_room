@@ -25,20 +25,20 @@ List reports
 
 ```sh
 war_room list reports
-+--------------------------+
-| Name                     |
-+--------------------------+
-| top-images-by-vuln-count |
-| images-vulns-by-severity |
-| vulns-by-team            |
-| vulns-by-all-teams       |
-| images-by-cve            |
-| release-debt             |
-| release-health           |
-| worst-packages           |
-| packages-with-upgrades   |
-| vex-effectiveness        |
-+--------------------------+
++--------------------------+----------------------------------------------+
+| Name                     | Description                                  |
++--------------------------+----------------------------------------------+
+| top-images-by-vuln-count | Top images by vulnerability count            |
+| images-vulns-by-severity | Images and their vulnerabilities by severity |
+| vulns-by-team            | Vulnerabilities by team                      |
+| vulns-by-all-teams       | Vulnerabilities by all teams                 |
+| images-by-cve            | Images affected by a specific CVE            |
+| release-debt             | Release debt report                          |
+| release-health           | Release health report                        |
+| worst-packages           | Worst packages report                        |
+| packages-with-upgrades   | Packages with upgrades report                |
+| vex-effectiveness        | VEX effectiveness report                     |
++--------------------------+----------------------------------------------+
 ```
 
 Run a report
@@ -69,6 +69,19 @@ docker run --rm -it -v "${GOPATH}/src/github.com/briandowns/image-scanning/artif
 ```
 
 ## Contributing
+
+### Add a New Report
+
+Adding a new report or fairly starightforward.
+
+1. Add the new report name and description to the `struct report reports` array at the top fo main.c
+2. Add a new query macro to report.c
+3. Add new function call prototype for the query in report.h 
+4. Implement new function in report.c
+5. Extend `else if` block in the `reports_cmd` function to match the report name in step 1 and add a call to the function defined in reports.h
+6. Build and run `war_room list reports` and update the README.md with the new output.
+
+There are already a number of useful flags defined for the `release` command and can be easily integrated into new report calls.
 
 Please feel free to open a PR!
 
