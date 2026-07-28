@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "report.h"
 #include "fort.h"
@@ -744,7 +745,7 @@ report_vex_effectiveness(const char *package_name)
     ft_table_t *table = ft_create_table();
     ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
         FT_ROW_HEADER);
-    ft_write_ln(table, "Package", "Total", "Vexed", "Effectiveness");
+    ft_write_ln(table, "Package", "Total", "Vexed", "Effectiveness %");
 
     int row_count = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
