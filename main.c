@@ -291,7 +291,7 @@ main(int argc, char **argv)
         "war-room uses the SQLite DB produced by rancher/image-scanning\n"
         "to generate reports and visualizations.\n\n"
         "Required:\n"
-        "    export CVE_DB_PATH=/path/to/cve.db\n");
+        "    export CVE_DB_PATH=/path/to/cves.db\n");
     rattler_set_version(root, STR(war_room_version));
 
     rattler_cmd *list = rattler_new_command(
