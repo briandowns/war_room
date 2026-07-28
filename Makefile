@@ -22,7 +22,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 .PHONY: install
-install: clean $(BINDIR)/$(BINARY)
+install: $(BINDIR)/$(BINARY)
 	install $(BINDIR)/$(BINARY) $(PREFIX)/$(BINDIR)/$(BINARY)
 
 .PHONY: uninstall
