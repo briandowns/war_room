@@ -16,7 +16,7 @@ sudo ldconfig
 ```
 
 ```sh
-make && sudo make install
+sudo make install
 ```
 
 ## Examples

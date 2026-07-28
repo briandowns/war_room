@@ -39,11 +39,6 @@ else
 	rm -f $(LINUX_MANPAGE_LOC)/$(BINARY).1
 endif
 
-#.PHONY: test
-#test:
-#	tests/tests
-#	rm -f tests/tests
-
 .PHONY: image
 image:
 	$(DOCKER) build -t briandowns/$(BINARY):latest .

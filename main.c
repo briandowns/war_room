@@ -92,20 +92,6 @@ struct report reports[] = {
     {NULL, NULL}
 };
 
-// static const char *reports[] = {
-//     "top-images-by-vuln-count",
-//     "images-vulns-by-severity",
-//     "vulns-by-team",
-//     "vulns-by-all-teams",
-//     "images-by-cve",
-//     "release-debt",
-//     "release-health",
-//     "worst-packages",
-//     "packages-with-upgrades",
-//     "vex-effectiveness",
-//     NULL
-// };
-
 static const char *severities[] = {
     "critical",
     "high",
