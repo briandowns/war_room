@@ -10,6 +10,7 @@ war_room
 war_room.core
 
 bin/war_room
+bin/
 
 test/test
 .vscode
