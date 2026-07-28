@@ -13,7 +13,7 @@ LDFLAGS = -lrattler -lsqlite3
 PREFIX = /usr/local
 
 MACOS_MANPAGE_LOC = /usr/share/man
-LINUX_MANPAGE_LOC = /usr/local/man/man1
+LINUX_MANPAGE_LOC = /usr/share/man/man1
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 	$(CC) $(CFLAGS) main.c report.c fort.c -o $(BINDIR)/$(BINARY) $(LDFLAGS)
