@@ -25,9 +25,9 @@ $(BINDIR):
 install: $(BINDIR)/$(BINARY)
 	install $(BINDIR)/$(BINARY) $(PREFIX)/$(BINDIR)/$(BINARY)
 ifeq ($(UNAME_S),Darwin)
-	cp $(MACOS_MANPAGE_LOC)/$(BINARY).1 $(BINARY).1
+	cp $(BINARY).1 $(MACOS_MANPAGE_LOC)/$(BINARY).1
 else
-	cp $(LINUX_MANPAGE_LOC)/$(BINARY).1 $(BINARY).1
+	cp $(BINARY).1 $(LINUX_MANPAGE_LOC)/$(BINARY).1
 endif
 
 .PHONY: uninstall
