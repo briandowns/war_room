@@ -28,6 +28,8 @@
 #ifndef __REPORT_H
 #define __REPORT_H
 
+#include <stdbool.h>
+
 #include <sqlite3.h>
 
 int
@@ -64,6 +66,9 @@ void
 report_release_health(const char *release);
 
 void
+report_release_stats_by_release(const char *release, const bool newest);
+
+void
 report_worst_packages(int limit);
 
 void
@@ -71,6 +76,9 @@ report_packages_with_upgrades(const char *package_name, const int limit);
 
 void
 report_vex_effectiveness(const char *package_name);
+
+void
+report_releases();
 
 void
 report_shutdown();

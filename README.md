@@ -35,6 +35,7 @@ war_room list reports
 | images-by-cve            | Images affected by a specific CVE            |
 | release-debt             | Release debt report                          |
 | release-health           | Release health report                        |
+| release-stats-by-release | Release stats by release report              |
 | worst-packages           | Worst packages report                        |
 | packages-with-upgrades   | Packages with upgrades report                |
 | vex-effectiveness        | VEX effectiveness report                     |
@@ -69,6 +70,12 @@ docker run --rm -it -v "${GOPATH}/src/github.com/briandowns/image-scanning/artif
 ```
 
 ## Contributing
+
+### Style
+
+Please match existing code style.
+
+File includes are grouped into 3 sections. The first are standard library includes, the second is for 3rd party libraries, and the third is for local project specific libraries.
 
 ### Add a New Report
 
