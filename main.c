@@ -43,6 +43,7 @@ struct report {
 static const char *list_items[] = {
     "images",
     "teams",
+    "releases",
     "reports",
     "severities",
     NULL
@@ -177,6 +178,8 @@ list_cmd(rattler_cmd *cmd, int argc, char **argv)
 
         printf("%s\n", ft_to_string(table));
         ft_destroy_table(table);
+    } else if (strcmp(list_item, "releases") == 0) {
+        report_releases();
     } else if (strcmp(list_item, "reports") == 0) {
         ft_table_t *table = ft_create_table();
         ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
@@ -256,13 +259,14 @@ reports_cmd(rattler_cmd *cmd, int argc, char **argv)
         }
     } else if (strcmp(report_name, "release-stats-by-release") == 0) {
         const char *release = rattler_flag_string(cmd, "release");
+        const bool newest = rattler_flag_bool(cmd, "newest");
 
         if (release == NULL || release[0] == '\0') {
             fprintf(stderr, "error: missing required flag -r or --release\n");
             return;
         }
 
-        report_release_stats_by_release(release);
+        report_release_stats_by_release(release, newest);
     } else if (strcmp(report_name, "worst-packages") == 0) {
         int limit = rattler_flag_int(cmd, "limit");
 
@@ -289,6 +293,8 @@ main(int argc, char **argv)
         "Rancher image-scanning reports CLI",
         "war-room uses the SQLite DB produced by rancher/image-scanning\n"
         "to generate reports and visualizations.\n\n"
+        "Please make sure you're running this against the most recent\n"
+        "git lfs pull of the CVE database.\n\n"
         "Required:\n"
         "    export CVE_DB_PATH=/path/to/cves.db\n");
     rattler_set_version(root, STR(war_room_version));
@@ -299,6 +305,7 @@ main(int argc, char **argv)
         "list shows available resources:\n"
         "    images: list all images\n"
         "    teams: list all teams\n"
+        "    releases: list all releases\n"
         "    reports: list all available reports\n"
         "    severities: list all vuln severity levels\n");
     list->cmd = list_cmd;
@@ -320,6 +327,7 @@ main(int argc, char **argv)
     rattler_flags_string(report, "package", 'p', "", "Package name");
     rattler_flags_string(report, "release", 'r', "", "Release tag");
     rattler_flags_string(report, "team", 't', "", "team name");
+    rattler_flags_bool(report, "newest", 'n', false, "newest only");
     rattler_add_command(root, report);
 
     if (report_init() != 0) {

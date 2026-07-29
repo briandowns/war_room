@@ -42,6 +42,8 @@ images
 .It
 teams
 .It
+releases
+.It
 reports
 .It
 severities
@@ -67,6 +69,8 @@ images-by-cve
 release-debt
 .It
 release-health
+.It
+release-stats-by-release
 .It
 worst-packages
 .It
@@ -113,6 +117,12 @@ Restrict a report to a package.
 
 .It Fl l , Fl -limit Ar number
 Limit the number of rows returned by a report.
+
+.It Fl t , Fl -team Ar team
+Team name.
+
+.It Fl n , Fl -newest Ar newest
+Newest only.
 
 .El
 

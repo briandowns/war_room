@@ -171,13 +171,21 @@
     "ORDER BY health DESC;"
 #define REL_STATS_BY_REL_QUERY "SELECT " \
     "release, critical, high, medium, low, vex, total " \
-    "FROM release_stats WHERE release LIKE '%' :release '%';"
+    "FROM release_stats " \
+    "WHERE release = :release ;"
+#define REL_STATS_BY_REL_NEWEST_QUERY "SELECT " \
+    "date, release, critical, high, medium, low, vex, total " \
+    "FROM release_stats " \
+    "WHERE " \
+        "date = (SELECT MAX(date) FROM release_stats) " \
+        "AND release = :release ;"
 #define WORST_PACKAGES_QUERY "SELECT " \
     "package_name, " \
     "COUNT(*) AS occurrences, " \
     "COUNT(DISTINCT vulnerability_id) AS unique_cves " \
     "FROM findings " \
-    "WHERE status != 'fixed' " \
+    "WHERE " \
+        "status != 'fixed' " \
     "GROUP BY package_name " \
     "ORDER BY occurrences DESC;"
 #define PACKAGES_WITH_UPGRADE_QUERY "SELECT " \
@@ -232,6 +240,8 @@
     "WHERE package_name = :package_name " \
     "GROUP BY package_name " \
     "ORDER BY total DESC;"
+#define RELEASES_QUERY "SELECT " \
+    "DISTINCT(release) FROM release_stats ORDER BY release;"
 
 static sqlite3 *db = NULL;
 
@@ -637,33 +647,33 @@ report_release_health(const char *release)
 }
 
 void
-report_release_stats_by_release(const char *release)
+report_release_stats_by_release(const char *release, const bool newest)
 {
     sqlite3_stmt *stmt;
     int rc = 0;
 
-        if (release != NULL && release[0] != '\0') {
-        rc = sqlite3_prepare_v2(db, RELEASE_HEALTH_BY_RELEASE_QUERY, -1, &stmt, NULL);
+    if (newest) {
+        rc = sqlite3_prepare_v2(db, REL_STATS_BY_REL_NEWEST_QUERY, -1, &stmt, NULL);
         if (rc != SQLITE_OK) {
             fprintf(stderr, "%s\n", sqlite3_errmsg(db));
             return;
         }
-
-        int param_index = sqlite3_bind_parameter_index(stmt, ":release");
-        if (param_index == 0) {
-            fprintf(stderr, "parameter ':release' not found in statement\n");
-            sqlite3_finalize(stmt);
+    } else {
+        rc = sqlite3_prepare_v2(db, REL_STATS_BY_REL_QUERY, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
             return;
-        } 
-
-        sqlite3_bind_text(stmt, param_index, release, -1, SQLITE_STATIC);
-        } else {
-            rc = sqlite3_prepare_v2(db, RELEASE_HEALTH_QUERY, -1, &stmt, NULL);
-            if (rc != SQLITE_OK) {
-                fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-                return;
-            }
         }
+    }
+
+    int param_index = sqlite3_bind_parameter_index(stmt, ":release");
+    if (param_index == 0) {
+        fprintf(stderr, "parameter ':release' not found in statement\n");
+        sqlite3_finalize(stmt);
+        return;
+    }
+
+    sqlite3_bind_text(stmt, param_index, release, -1, SQLITE_STATIC);
 
     ft_table_t *table = ft_create_table();
     ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
@@ -813,6 +823,33 @@ report_vex_effectiveness(const char *package_name)
         ft_write_ln(table, (const char *)package_name, (const char *)total,
             (const char *)vexed, (const char *)effectiveness);
         row_count++;
+    }
+    sqlite3_finalize(stmt);
+
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
+}
+
+void
+report_releases()
+{
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, RELEASES_QUERY, -1,
+        &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE,
+        FT_ROW_HEADER);
+    ft_write_ln(table, "Release");
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char *release = sqlite3_column_text(stmt, 0);
+
+        ft_write_ln(table, (const char *)release);
     }
     sqlite3_finalize(stmt);
 
